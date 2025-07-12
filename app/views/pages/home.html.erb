@@ -2,3 +2,9 @@
   <h1 class="font-bold text-4xl">Pages#home</h1>
   <p>Find me in app/views/pages/home.html.erb</p>
 </div>
+
+<ul>
+  <% @games.each do |game| %>
+    <li><%= link_to game.title, game_path(game) %></li>
+  <% end %>
+</ul>

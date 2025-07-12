@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "game_sessions/new"
+  get "game_sessions/create"
   get "games/show"
   get "pages/home"
   devise_for :users
@@ -11,6 +13,6 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root to: "pages#home"
   resources :games, only: [:show] do
-    resources :game_sessions, only: [:create]
+    resources :game_sessions, only: [:new, :create]
   end
 end

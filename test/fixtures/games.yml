@@ -1,7 +1,31 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  title: MyString
+generic_score_counter:
+  title: "Generic score counter"
 
-two:
-  title: MyString
+generic_bet_manager:
+  title: "Generic bet manager"
+
+skyjo:
+  title: "Skyjo"
+
+five_crowns:
+  title: "Five Crowns"
+
+koi_koi:
+  title: "Koi Koi"
+
+oh_hell:
+  title: "Oh Hell (Escalier)"
+
+killer:
+  title: "Killer"
+
+azul:
+  title: "Azul"
+
+poker:
+  title: "Poker"
+
+scopa:
+  title: "Scopa"

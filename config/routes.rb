@@ -10,5 +10,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root to: "pages#home"
-  resources :games, only: [:show]
+  resources :games, only: [:show] do
+    resources :game_sessions, only: [:create]
+  end
 end

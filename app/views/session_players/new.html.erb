@@ -1,0 +1,11 @@
+<%= simple_form_for([@session_player]) do |f| %>
+  <%= f.input :game_session_id, as: :hidden, input_html: { value: @session.id } %>
+  <%= f.input :user %>
+  <%= f.input :position %>
+  <%= f.submit "Add player" %>
+<% end %>
+
+<%= simple_form_for([@score_sheet]) do |f| %>
+  <%= f.input :game_session_id, as: :hidden, input_html: { value: @session.id } %>
+  <%= f.submit "Start game" %>
+<% end %>

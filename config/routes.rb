@@ -1,8 +1,4 @@
 Rails.application.routes.draw do
-  get "game_sessions/new"
-  get "game_sessions/create"
-  get "games/show"
-  get "pages/home"
   devise_for :users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -15,4 +11,7 @@ Rails.application.routes.draw do
   resources :games, only: [:show] do
     resources :game_sessions, only: [:new, :create]
   end
+
+  resources :session_players, only: [:new, :create]
+  resources :score_sheets, only: [:show, :create]
 end

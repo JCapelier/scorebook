@@ -1,4 +1,9 @@
 puts "Deleting DB"
+Move.destroy_all
+Round.destroy_all
+ScoreSheet.destroy_all
+SessionPlayer.destroy_all
+GameSession.destroy_all
 Game.destroy_all
 User.destroy_all
 puts "DB deleted"

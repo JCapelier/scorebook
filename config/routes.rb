@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "moves/create"
   devise_for :users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -13,5 +14,9 @@ Rails.application.routes.draw do
   end
 
   resources :session_players, only: [:new, :create]
-  resources :score_sheets, only: [:show, :create]
+  resources :score_sheets, only: [:show, :create] do
+    resources :rounds, only: [:create]
+  end
+  resources :rounds, only: [:edit, :update]
+  resources :moves, only: [:create]
 end

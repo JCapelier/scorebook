@@ -1,1 +1,54 @@
 Scoresheet id : <%= @score_sheet.id %>
+Players :
+<ul>
+  <% @score_sheet.session_players.each do |player| %>
+    <li><%= player.user.username %> - Position : <%= player.position %></li>
+  <% end %>
+</ul>
+
+<%= @score_sheet.game.title %>
+Round: <%= @score_sheet.data["current_round"] %>
+Number of cards: <%= @game_service.cards_for_round(@score_sheet.data["current_round"]) %>
+Wild cards: <%= @game_service.wild_cards(@score_sheet.data["current_round"]) %>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Round</th>
+      <% @score_sheet.session_players.each do |player| %>
+        <th><%= player.user.username %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+
+    <% @score_sheet.rounds.each do |round| %>
+      <tr>
+        <td>Round <%= round.data["round_number"] %></td>
+        <% @score_sheet.session_players.each do |player| %>
+          <td>
+            <% if round.data["status"] == "completed" %>
+              <%= round.data["scores"][player.user.username] %>
+            <% else %>
+              <%= button_to "Finished", moves_path, params: {
+                    session_player_id: player.id,
+                    round_id: round.id,
+                    move_type: "finished_first"
+                  }, method: :post %>
+            <% end %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+
+    <tr>
+      <td><strong>Total</strong></td>
+      <% @score_sheet.session_players.each do |player| %>
+        <td><strong><%= @score_sheet.data["total_scores"][player.user.username] %></strong></td>
+      <% end %>
+    </tr>
+  </tbody>
+</table>
+
+<%= button_to "Create Round", score_sheet_rounds_path(@score_sheet), method: :post %>

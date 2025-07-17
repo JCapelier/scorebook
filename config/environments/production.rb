@@ -21,7 +21,7 @@ Rails.application.configure do
   # config.require_master_key = true
 
   # Enable serving static files from `public/` (needed for Heroku asset pipeline)
-  config.public_file_server.enabled = ENV["RAILS_SERVE_STATIC_FILES"].present? || true
+  config.public_file_server.enabled = ENV["RAILS_SERVE_STATIC_FILES"].present?
 
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
@@ -36,7 +36,7 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
+  # Store uploaded files on Cloudinary in production
   config.active_storage.service = :cloudinary
 
   # Mount Action Cable outside main process or domain.
@@ -95,8 +95,5 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Ensure JS assets are served with the correct MIME type for ES modules
-  config.assets.configure do |env|
-    env.register_mime_type 'application/javascript', extensions: ['.js'], charset: :unicode
-  end
+  # (No custom JS MIME type config needed for default Rails/Heroku setup)
 end

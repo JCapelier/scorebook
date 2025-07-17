@@ -95,3 +95,7 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
+  # Ensure JS assets are served with the correct MIME type for ES modules
+  config.assets.configure do |env|
+    env.register_mime_type 'application/javascript', extensions: ['.js'], charset: :unicode
+  end

@@ -1,0 +1,83 @@
+
+<h2 class="text-xl font-bold text-center mb-5">Let's get ready for some <br> <%= @game.title %> !</h2>
+<script>
+  window.USER_PROFILE_PICS = {
+    <% @users.each do |user| %>
+      "<%= user.username %>": "<%= j user_profile_pic_url(user) %>",
+    <% end %>
+  };
+</script>
+
+<%= simple_form_for([@game, @session]) do |f| %>
+  <div class="text-center mb-5">
+    <label class="block mb-2 font-medium">Where are you playing?</label>
+    <%= f.input :place, label: false, input_html: { class: "input input-bordered w-full max-w-xs focus:outline-none" } %>
+  </div>
+  <div class="flex flex-col items-center">
+    <div class="block mb-2 font-medium">Seat the players&nbsp;!</div>
+    <div
+      data-controller="table-player-assignment"
+      class="relative w-80 h-96 flex flex-col items-center justify-center mb-5"
+      style="min-width: 320px; min-height: 384px;"
+    >
+      <div class="w-full h-full relative">
+        <svg id="spots-ellipse" width="320" height="320" style="position:absolute; left:0; top:0; z-index:0; pointer-events:none;">
+          <ellipse cx="160" cy="160" rx="100" ry="100" fill="#228B22" stroke="#8B4513" stroke-width="8" />
+        </svg>
+        <% (@session.session_players || []).each_with_index do |player, i| %>
+          <button
+            type="button"
+            class="table-spot btn btn-circle btn-outline absolute"
+            data-table-player-assignment-target="spot"
+            style="<%= "left: #{40 + 140 * Math.cos(2 * Math::PI * i / @game.max_players)}px; top: #{40 + 140 * Math.sin(2 * Math::PI * i / @game.max_players)}px; background: #f3f4f6; z-index: 2;" %>"
+          >
+            +
+            <input type="hidden" name="session[players][]" value="<%= player.user&.username %>">
+          </button>
+        <% end %>
+      </div>
+
+      <!-- Player name modal -->
+      <div id="player-name-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden" style="backdrop-filter: blur(4px); background: rgba(243,244,246,0.7);">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-80 flex flex-col items-center">
+          <label for="player-name-input" class="mb-2 font-medium">Player name:</label>
+          <input id="player-name-input" type="text" class="input input-bordered w-full mb-4" autocomplete="off" list="usernames-list" onkeydown="if(event.key==='Enter'){event.preventDefault();}" />
+          <datalist id="usernames-list">
+            <% @users.each do |user| %>
+              <option value="<%= user.username %>"></option>
+            <% end %>
+          </datalist>
+          <div class="flex gap-4">
+            <button id="player-name-confirm" class="btn btn-primary" type="button">OK</button>
+            <button id="player-name-cancel" class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    <div class="flex gap-4 mt-8">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        data-table-player-assignment-target="addButton"
+        data-action="click->table-player-assignment#addSpot"
+        data-max-players="<%= @game.max_players %>"
+        <% if (@session.session_players&.size || 0) >= @game.max_players %>disabled<% end %>
+      >
+        <i class="fa fa-plus"></i> Add Player Spot
+      </button>
+      <button
+        type="button"
+        class="btn btn-error"
+        data-table-player-assignment-target="removeButton"
+        data-action="click->table-player-assignment#removeSpot"
+        data-min-players="<%= @game.min_players %>"
+        <% if (@session.session_players&.size || 0) <= @game.min_players %>disabled<% end %>
+      >
+        <i class="fa fa-minus"></i> Remove Player Spot
+      </button>
+    </div>
+    </div>
+  </div>
+  <div class="text-center mt-5">
+    <%= f.submit "Create session", class: "btn btn-primary" %>
+  </div>
+<% end %>

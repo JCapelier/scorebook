@@ -1,0 +1,17 @@
+<%= simple_fields_for "game_session[session_players_attributes][]", player do |player_form| %>
+  <div data-player-creation-target="playerForm">
+    <div class="mb-4 text-center">
+      <label class="block mb-2 font-medium">Player:</label>
+      <%= player_form.select :user_id,
+        options_from_collection_for_select(User.all, :id, :username),
+        { prompt: "Select a player..." },
+        { class: "select select-bordered w-full max-w-xs mr-2" } %>
+      <button type="button"
+              class="font-medium text-red-500"
+              data-action="click->player-creation#removePlayer"
+              aria-label="Remove player">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+  </div>
+<% end %>

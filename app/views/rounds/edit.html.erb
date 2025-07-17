@@ -1,0 +1,14 @@
+<h2>Enter Scores for Round <%= @round.data["round_number"] %></h2>
+
+<%= simple_form_for @round do |f| %>
+  <% @round.score_sheet.session_players.each do |player| %>
+    <div>
+      <%= label_tag "scores[#{player.user.username}]", player.user.username %>
+      <%= number_field_tag "scores[#{player.user.username}]",
+            @round.data["scores"][player.user.username],
+            placeholder: "Enter score" %>
+    </div>
+  <% end %>
+
+  <%= f.submit "Save Scores" %>
+<% end %>

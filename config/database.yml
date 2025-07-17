@@ -82,3 +82,4 @@ production:
   database: scorebook_production
   username: scorebook
   password: <%= ENV["SCOREBOOK_DATABASE_PASSWORD"] %>
+  url: <%= ENV["DATABASE_URL"] %>

@@ -1,54 +1,168 @@
-Scoresheet id : <%= @score_sheet.id %>
-Players :
-<ul>
-  <% @score_sheet.session_players.each do |player| %>
-    <li><%= player.user.username %> - Position : <%= player.position %></li>
+
+</table>
+
+<%# End-of-game confirmation modal (moved after table for DOM availability) %>
+<div id="end-game-modal" class="fixed inset-0 flex items-center justify-center z-50" style="display:none; background:rgba(0,0,0,0.3);">
+  <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md text-center relative">
+    <h2 class="text-2xl font-bold mb-4 text-purple-700">End Game?</h2>
+    <p class="mb-4">Are you sure you want to end the game? You can still go back and edit scores if needed.</p>
+    <div class="flex gap-4 justify-center">
+      <button id="end-game-cancel" class="btn btn-secondary">Edit Scores</button>
+      <form method="post" action="<%= end_game_score_sheet_path(@score_sheet) %>" data-turbo="false">
+        <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+        <button type="submit" class="btn btn-primary">End Game &amp; See Results</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Show the end-game modal if all rounds are filled
+  document.addEventListener('DOMContentLoaded', function() {
+    var rounds = <%= @score_sheet.rounds.count %>;
+    var currentRound = <%= @score_sheet.data["current_round"] || 1 %>;
+    if (currentRound >= rounds) {
+      var modal = document.getElementById('end-game-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+    var cancelBtn = document.getElementById('end-game-cancel');
+    if (cancelBtn) {
+      cancelBtn.onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('end-game-modal').style.display = 'none';
+      };
+    }
+  });
+</script>
+
+<script>
+  window.scoreSheetRounds = <%= raw @score_sheet.rounds.map { |r| { id: r.id, data: r.data } }.to_json %>;
+  window.currentRoundNumber = <%= @score_sheet.data["current_round"] || 1 %>;
+</script>
+
+<body data-score-sheet-id="<%= @score_sheet.id %>">
+<%# Only show modal if first_player is not set %>
+<% if @score_sheet.data["first_player"].blank? %>
+  <div id="first-player-modal" data-controller="first-player" class="fixed inset-0 flex items-center justify-center z-50" style="backdrop-filter: blur(4px); background: rgba(243,244,246,0.7); display:none;">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-80 flex flex-col items-center">
+      <label for="first-player-select" class="mb-2 font-medium">Who is the first player?</label>
+      <select id="first-player-select" class="select select-bordered w-full mb-4">
+        <% @score_sheet.session_players.each do |player| %>
+          <option value="<%= player.user.username %>"><%= player.user.username %></option>
+        <% end %>
+      </select>
+      <button id="first-player-confirm" data-action="click->first-player#setPositions" class="btn btn-primary">OK</button>
+    </div>
+  </div>
+<% end %>
+
+
+<% players = @score_sheet.session_players.to_a %>
+<% round_num = @score_sheet.data["current_round"] || 1 %>
+
+<%# Helper to compute first player and dealer for a given round %>
+<% def round_first_player_idx(players, score_sheet, round_number) %>
+  <% if score_sheet.data["first_player"].present? %>
+    <% idx = players.find_index { |p| p.user.username == score_sheet.data["first_player"] } || 0 %>
+    <% (idx + round_number - 1) % players.size %>
+  <% else %>
+    <% (round_number - 1) % players.size %>
   <% end %>
-</ul>
+<% end %>
 
-<%= @score_sheet.game.title %>
-Round: <%= @score_sheet.data["current_round"] %>
-Number of cards: <%= @game_service.cards_for_round(@score_sheet.data["current_round"]) %>
-Wild cards: <%= @game_service.wild_cards(@score_sheet.data["current_round"]) %>
+<% def round_dealer_idx(players, score_sheet, round_number) %>
+  <% (round_first_player_idx(players, score_sheet, round_number) - 1) % players.size %>
+<% end %>
+
+<% first_player_idx = round_first_player_idx(players, @score_sheet, round_num) %>
+<% dealer_idx = round_dealer_idx(players, @score_sheet, round_num) %>
+<% first_player = players[first_player_idx].user.username %>
+<% dealer = players[dealer_idx].user.username %>
+
+<div class="bg-white/80 rounded-xl shadow p-6 mb-6 flex flex-col gap-2 items-center max-w-xl mx-auto border border-gray-200">
+  <div class="text-lg font-bold mb-1"><%= @score_sheet.game.title %></div>
+  <div class="flex flex-wrap gap-4 justify-center">
+    <span class="badge badge-outline">Round: <%= round_num %></span>
+    <span class="badge badge-outline">Cards: <%= @game_service.cards_for_round(round_num) %></span>
+    <span class="badge badge-outline">Wild card: <%= @game_service.wild_cards(round_num) %></span>
+    <span class="badge badge-success">First player: <%= first_player %></span>
+    <span class="badge badge-warning">Dealer: <%= dealer %></span>
+  </div>
+</div>
 
 
-<table>
+<div data-controller="score-modal">
+<% player_count = @score_sheet.session_players.size %>
+<div class="<%= player_count > 3 ? 'w-full overflow-x-auto' : 'flex justify-center' %>">
+<table class="border-separate border-spacing-0 rounded-xl overflow-hidden shadow-lg bg-white <%= player_count > 3 ? 'w-full min-w-[600px]' : 'table-fixed mx-auto' %>">
   <thead>
-    <tr>
-      <th>Round</th>
+    <tr class="bg-gradient-to-r from-yellow-300 via-purple-400 to-yellow-200">
+      <th class="py-3 px-2 text-center align-middle font-bold text-purple-900 border-b-2 border-purple-300">#</th>
       <% @score_sheet.session_players.each do |player| %>
-        <th><%= player.user.username %></th>
+        <th class="py-3 px-2 text-center align-middle font-bold text-purple-900 border-b-2 border-purple-300"><%= player.user.username %></th>
       <% end %>
     </tr>
   </thead>
   <tbody>
 
-    <% @score_sheet.rounds.each do |round| %>
-      <tr>
-        <td>Round <%= round.data["round_number"] %></td>
-        <% @score_sheet.session_players.each do |player| %>
-          <td>
-            <% if round.data["status"] == "completed" %>
-              <%= round.data["scores"][player.user.username] %>
+      <% @score_sheet.rounds.sort_by { |r| r.data["round_number"] || 0 }.each_with_index do |round, idx| %>
+        <% editable = round.data["round_number"] <= round_num %>
+        <tr class="<%= round.data["round_number"] == round_num ? 'bg-yellow-100' : idx.even? ? 'bg-white' : 'bg-purple-50' %>">
+          <td class="py-2 px-2 text-center align-middle font-semibold text-purple-700 border-b border-purple-100"><%= round.data["round_number"] %></td>
+          <% @score_sheet.session_players.each do |player| %>
+            <% cell_content = round.data["scores"] && round.data["scores"][player.user.username] ? round.data["scores"][player.user.username] : '' %>
+            <% is_first = round.data["finished_first"].to_s.strip.downcase == player.user.username.to_s.strip.downcase %>
+            <% cell_classes = 'py-2 px-2 text-center align-middle border-b border-purple-100 ' %>
+            <% cell_classes += 'bg-yellow-50 font-bold ' %>
+            <% cell_classes += is_first ? 'text-yellow-500 ' : 'text-purple-900 ' %>
+            <% if editable %>
+              <td class="<%= cell_classes %>cursor-pointer hover:bg-yellow-200 transition" data-action="click->score-modal#open" data-round-number="<%= round.data["round_number"] %>"><%= cell_content %></td>
             <% else %>
-              <%= button_to "Finished", moves_path, params: {
-                    session_player_id: player.id,
-                    round_id: round.id,
-                    move_type: "finished_first"
-                  }, method: :post %>
+              <td class="<%= cell_classes %>"><%= cell_content %></td>
             <% end %>
-          </td>
-        <% end %>
-      </tr>
+          <% end %>
+        </tr>
     <% end %>
 
-    <tr>
-      <td><strong>Total</strong></td>
+    <tr class="bg-gradient-to-r from-yellow-200 via-purple-100 to-yellow-100">
+      <td class="py-2 px-2 text-center align-middle font-semibold text-purple-900 border-t-2 border-purple-300 border-b border-purple-100">Total</td>
       <% @score_sheet.session_players.each do |player| %>
-        <td><strong><%= @score_sheet.data["total_scores"][player.user.username] %></strong></td>
+        <td class="py-2 px-2 text-center align-middle font-semibold text-purple-900 border-t-2 border-purple-300 border-b border-purple-100"><%= @score_sheet.data["total_scores"][player.user.username] %></td>
       <% end %>
     </tr>
   </tbody>
-</table>
 
-<%= button_to "Create Round", score_sheet_rounds_path(@score_sheet), method: :post %>
+</table>
+</div>
+
+  <div data-score-modal-target="modal" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-96 flex flex-col items-center">
+      <%# The form will be dynamically filled by the controller based on the clicked cell %>
+      <h2 class="text-center text-2xl font-extrabold text-purple-700 mb-2" data-score-modal-target="roundNumber"></h2>
+      <form action="#" method="post" data-score-modal-target="form">
+        <input type="hidden" name="_method" value="patch">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <label for="finished_first_player_modal" class="block mb-2 text-center text-base font-normal text-gray-600">Who finished first?</label>
+        <select name="finished_first" id="finished_first_player_modal" class="select select-bordered w-full mb-4">
+          <% @score_sheet.session_players.each do |player| %>
+            <option value="<%= player.user.username %>"><%= player.user.username %></option>
+          <% end %>
+        </select>
+        <div class="w-full mb-2">
+          <% @score_sheet.session_players.each do |player| %>
+            <div class="flex items-center gap-2 mb-1">
+              <label class="w-24"><%= player.user.username %></label>
+              <input type="number" name="scores[<%= player.user.username %>]" class="input input-bordered w-24 score-input" placeholder="Score" data-player="<%= player.user.username %>">
+            </div>
+          <% end %>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-secondary" data-action="score-modal#close">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%= "current_round: #{@score_sheet.data["current_round"]}, rounds: #{@score_sheet.rounds.count}" %>

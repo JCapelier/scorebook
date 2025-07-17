@@ -1,0 +1,79 @@
+<div class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-yellow-50 p-2 sm:p-6">
+  <div class="bg-white rounded-xl shadow-xl p-4 sm:p-8 w-full max-w-2xl text-center mb-6 sm:mb-8">
+    <h1 class="text-2xl sm:text-4xl font-extrabold text-purple-700 mb-2 sm:mb-4">🎉 Game Over! 🎉</h1>
+    <h2 class="text-lg sm:text-2xl font-bold mb-2">Final Ranking</h2>
+    <% if @celebration_stats && @celebration_stats[:ranking].present? %>
+      <ol class="mb-3 sm:mb-4">
+        <% @celebration_stats[:ranking].each_with_index do |player, idx| %>
+          <li class="font-bold text-base sm:text-lg <%= idx == 0 ? 'text-green-600' : '' %>">
+            <%= idx+1 %>. <%= player[:name] %> - <%= player[:score] %> pts
+            <% if idx == 0 %> 🏆 <% end %>
+          </li>
+        <% end %>
+      </ol>
+      <div class="mb-3 sm:mb-4">
+        <p class="text-base sm:text-lg">🏁 <span class="font-bold">Longest zero streak:</span>
+          <span class="text-blue-700 font-bold"><%= @celebration_stats[:most_zeros]&.dig(:name) || '-' %></span>
+          (<%= @celebration_stats[:most_zeros]&.dig(:count) || 0 %> rounds in a row)
+        </p>
+        <p class="text-base sm:text-lg">😱 <span class="font-bold">Highest single round (shame!):</span>
+          <span class="text-red-700 font-bold"><%= @celebration_stats[:highest_score]&.dig(:name) || '-' %></span>
+          (<%= @celebration_stats[:highest_score]&.dig(:score) || 0 %> pts)
+        </p>
+      </div>
+    <% else %>
+      <div class="mb-4 text-red-600 font-semibold">No stats available for this game. Please ensure the game was completed properly.</div>
+    <% end %>
+    <div class="mb-4">
+      <% if @score_sheet.game_session.ends_at && @score_sheet.game_session.starts_at %>
+        <p class="text-gray-600">⏱️ Game duration:
+          <%= distance_of_time_in_words(@score_sheet.game_session.starts_at, @score_sheet.game_session.ends_at) %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-white/80 rounded-xl shadow p-3 sm:p-6 mb-4 sm:mb-6 flex flex-col gap-2 items-center w-full max-w-xl mx-auto border border-gray-200">
+    <div class="text-base sm:text-lg font-bold mb-1"><%= @score_sheet.game.title %></div>
+    <div class="flex flex-wrap gap-2 sm:gap-4 justify-center text-xs sm:text-base">
+      <span class="badge badge-outline">Rounds: <%= @score_sheet.rounds.count %></span>
+      <span class="badge badge-outline">Players: <%= @score_sheet.session_players.map { |p| p.user.username }.join(', ') %></span>
+    </div>
+  </div>
+
+  <% player_count = @score_sheet.session_players.size %>
+  <div class="overflow-x-auto mb-6 sm:mb-8">
+    <table class="border-separate border-spacing-0 rounded-xl overflow-hidden shadow-lg bg-white <%= player_count > 3 ? 'w-full min-w-[600px]' : 'w-auto max-w-full' %> table-fixed">
+      <thead>
+        <tr class="bg-gradient-to-r from-yellow-300 via-purple-400 to-yellow-200">
+          <th class="py-2 px-2 sm:py-3 sm:px-4 w-10 text-center align-middle font-bold text-purple-900 border-b-2 border-purple-300">#</th>
+          <% @score_sheet.session_players.each do |player| %>
+            <th class="py-2 px-2 sm:py-3 sm:px-4 w-24 text-center align-middle font-bold text-purple-900 border-b-2 border-purple-300"><%= player.user.username %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @score_sheet.rounds.sort_by { |r| r.data["round_number"] || 0 }.each_with_index do |round, idx| %>
+          <tr class="<%= idx.even? ? 'bg-white' : 'bg-purple-50' %>">
+            <td class="py-1 px-2 sm:py-2 sm:px-4 w-10 text-center align-middle font-semibold text-purple-700 border-b border-purple-100"><%= round.data["round_number"] %></td>
+            <% @score_sheet.session_players.each do |player| %>
+              <% cell_content = round.data["scores"] && round.data["scores"][player.user.username] ? round.data["scores"][player.user.username] : '' %>
+              <% is_first = round.data["finished_first"] == player.user.username %>
+              <td class="py-1 px-2 sm:py-2 sm:px-4 w-24 text-center align-middle border-b border-purple-100 bg-yellow-50 font-bold <%= is_first ? 'text-yellow-500' : 'text-purple-900' %>"><%= cell_content %></td>
+            <% end %>
+          </tr>
+        <% end %>
+        <tr class="bg-gradient-to-r from-yellow-200 via-purple-100 to-yellow-100">
+          <td class="py-1 px-2 sm:py-2 sm:px-4 w-10 text-center align-middle font-semibold text-purple-900 border-t-2 border-purple-300 border-b border-purple-100">Total</td>
+          <% @score_sheet.session_players.each do |player| %>
+            <td class="py-1 px-2 sm:py-2 sm:px-4 w-24 text-center align-middle font-semibold text-purple-900 border-t-2 border-purple-300 border-b border-purple-100"><%= @score_sheet.data["total_scores"][player.user.username] %></td>
+          <% end %>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4">
+    <%= link_to 'Back to Game List', root_path, class: 'btn btn-secondary' %>
+  </div>
+</div>

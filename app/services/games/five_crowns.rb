@@ -1,5 +1,9 @@
 module Games
   class FiveCrowns
+    # Returns the score for the player who finished first (0 for Five Crowns)
+    def self.finished_first_score
+      0
+    end
     def self.initial_data(players)
       {
         "game_type" => "five_crowns",
@@ -55,6 +59,14 @@ module Games
         "scores" => score_sheet.session_players.map { |p| [p.user.username, nil] }.to_h,
         "status" => "in_progress"
       }
+    end
+
+    def self.max_players
+      7
+    end
+
+    def self.min_players
+      2
     end
   end
 end

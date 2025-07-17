@@ -1,4 +1,5 @@
 puts "Deleting DB"
+UserStat.destroy_all
 Move.destroy_all
 Round.destroy_all
 ScoreSheet.destroy_all
@@ -22,8 +23,11 @@ Game.create!(title: "Scopa")
 puts "Created #{Game.count} games"
 
 puts "Creating users"
-User.create(first_name: "User", last_name: "1", username: "User1", email: "test1@mail.com", password: "password")
-User.create(first_name: "User", last_name: "2", username: "User2", email: "test2@mail.com", password: "password")
-User.create(first_name: "User", last_name: "3", username: "User3", email: "test3@mail.com", password: "password")
-User.create(first_name: "User", last_name: "4", username: "User4", email: "test4@mail.com", password: "password")
+User.create(first_name: "Esther", last_name: "Descamps", username: "Tether", email: "esther@mail.com", password: "password")
+User.create(first_name: "Flore", last_name: "Capelier", username: "Florette", email: "flore@mail.com", password: "password")
+User.create(first_name: "Renaud", last_name: "Torrent", username: "Reno", email: "renaud@mail.com", password: "password")
+User.create(first_name: "Anne-Laure", last_name: "Crépel", username: "Doudou", email: "anne-laure@mail.com", password: "password")
+User.create(first_name: "Mara", last_name: "Goyet", username: "Môman", email: "mara@mail.com", password: "password")
+User.create(first_name: "Claude", last_name: "Capelier", username: "Pôpa", email: "claude@mail.com", password: "password")
+User.create(first_name: "Jonas", last_name: "Capelier", username: "Joe", email: "jonas@mail.com", password: "password")
 puts "Created #{User.count} users"

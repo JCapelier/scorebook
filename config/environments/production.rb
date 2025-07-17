@@ -93,9 +93,10 @@ Rails.application.configure do
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
-end
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
   # Ensure JS assets are served with the correct MIME type for ES modules
   config.assets.configure do |env|
     env.register_mime_type 'application/javascript', extensions: ['.js'], charset: :unicode
   end
+end
